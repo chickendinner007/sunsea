@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script type="text/javascript" src="js/jQuery.js"></script>
+		<script type="text/javascript" src="js/cookie.js"></script>
+		<style type="text/css">
+			body,html{
+				height:100%;
+			}
+			.shoplist{
+				width: 1050px;
+			}
+			.shop-item{
+				width: 100%;
+				
+				/*border: 1px solid #d1d1d1;*/
+				margin: 20px auto;
+				text-align: center;
+			}
+			.fl{
+				float: left;
+			}
+			.shop-item input[type="checkbox"]{
+				width: 30px;
+				height: 30px;
+			}
+			.shop-item .fl{
+				padding: 10px;
+				width: 129px;
+				display: block;
+				font-style: normal;
+				height: 150px;
+				border: 1px solid #d1d1d1;
+				margin-left: -1px;
+			}
+			.shop-item .fl:after{
+				content: "";
+				display: inline-block;
+				vertical-align: middle;
+				height: 100%;
+			}
+			.shop-item .count > span{
+				display: inline-block;
+				width: 30px;
+				height: 30px;
+				border: 1px solid #d1d1d1;
+				line-height: 30px;
+				cursor: pointer;
+				margin-left: 5px;
+			}
+			#sum{
+				width: 1050px;
+				margin: 20px auto 100px;
+				text-align: right;
+			}
+			.shopbox{
+				width:100%;
+			}
+			.shoplist{
+				width:1180px;
+				overflow:hidden;
+				margin:0 auto;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="shoplist"></div>
+	</body>
+</html>
+<script type="text/javascript">
+	$(function(){
+		var cookieInfo = getCookie("shoplist");
+		for (var i = 0 ; i < cookieInfo.length ; i ++) {
+			shopinfo = cookieInfo[i];
+			str = '<div class="shop-item clearfix">'+
+					'<p class="fl"><input type="checkbox" class="ck"/></p>'+
+					'<img class="fl" src="img/'+ shopinfo.src +'" alt="" />'+
+					'<p class="fl">'+ shopinfo.name +'</p>'+
+					'<span class="fl">'+ shopinfo.price +'元</span>'+
+					'<p class="fl count" '+
+						'data-id="'+ shopinfo.id +'" '+
+						'data-price="'+ shopinfo.price +'" data-count="'+ shopinfo.count +'"'+
+						'data-name="'+ shopinfo.name +'" data-src="'+ shopinfo.src +'"'+
+						'>'+
+						'<span class="updateCount" data-number="1">+</span>'+
+						'<span class="shop-count">'+ shopinfo.count +'</span>'+
+						'<span class="updateCount" data-number="-1">-</span>'+
+					'</p>'+
+					'<em class="fl sumPrice">'+ (shopinfo.count * shopinfo.price) +'元</em>'+
+					'<i class="fl delBtn">删除</i>'+
+				'</div>';
+				
+							
+				$(".shoplist").append(str);
+			
+		}
+		//全选
+		$("#selectAll").click(function(){
+			$(".ck").prop("checked",$(this).prop("checked"));
+			jiesuan();
+		})
+		//结算
+		$(".ck").click(function(){
+			jiesuan();
+		})
+		function jiesuan(){
+			var sumCount = 0;
+			var sumPrice = 0;
+			$(".ck:checked").each(function(){
+				sumCount += parseInt( $(this).parent().parent().find(".shop-count").html() ); 
+				sumPrice += parseInt($(this).parent().parent().find(".sumPrice").html()) ; 
+			})
+			$(".count2").html(sumCount);
+			$(".money2").html(sumPrice);
+		}
+		//加减操作
+		$(".updateCount").click(function(){
+			//确定操作的商品编号id
+			var id = $(this).parent().data("id");
+			//取出运算符
+			var f = $(this).html();
+		 	
+		 	var count = $(this).parent().find(".shop-count").html();
+		 	if (count==1 && f == "-") {
+		 		return ;
+		 	}
+			
+			for (var i = 0 ; i < cookieInfo.length ; i ++) {
+				if (id == cookieInfo[i].id) { //该条件说明找到了操作的商品					
+					f=="+"?cookieInfo[i].count++ : cookieInfo[i].count--;
+					setCookie("shoplist",JSON.stringify(cookieInfo));
+					$(this).parent().find(".shop-count").html(cookieInfo[i].count);
+					$(this).parent().next().html(cookieInfo[i].count*cookieInfo[i].price+"元");
+				}
+			}
+			jiesuan();
+		})
+		//删除
+		$(".delBtn").click(function(){
+			if (confirm("确定要删除么？")) {	
+				//确定当前删除的商品  id
+				var id = $(this).parent().find(".count").data("id");
+				for (var i = 0 ; i < cookieInfo.length ; i ++) {
+					if (id == cookieInfo[i].id) {
+						cookieInfo.splice(i,1);//根据id查找到要删除的商品  删除
+						//重新设置cookie
+						setCookie("shoplist",JSON.stringify(cookieInfo));
+						break;
+					}
+				}
+				$(this).parent().remove();				
+			}
+		})
+	})
+</script>
